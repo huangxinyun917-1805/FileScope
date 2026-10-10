@@ -41,6 +41,7 @@ def scan_directory(target):
     total_size = 0  # 统计所有文件的总大小
     extension_count = {}  # 记录“扩展名 -> 文件数量”
     hash_groups = {}  # 记录“哈希值 -> 具有该哈希值的文件路径列表”
+    size_groups = {}  # 记录“文件大小 -> 相同大小的文件记录列表”
 
     # rglob("*") 会递归遍历目标目录中的所有文件和子目录。
     for path in target.rglob("*"):
@@ -55,9 +56,6 @@ def scan_directory(target):
                 # 获取文件扩展名并转成小写，避免把 .TXT 和 .txt 当成两种类型。
                 extension = path.suffix.lower()
 
-                # 扫描当前文件时，同时计算它的内容哈希值。
-                file_hash = calculate_hash(path)
-
                 # 整理结构化文件属性记录（字典，键：值）。
                 file_record = {
                     "path": str(path.resolve()),  # 文件绝对路径
@@ -65,7 +63,8 @@ def scan_directory(target):
                     "size": file_size,
                     "extension": extension,
                     "modified_time": file_info.st_mtime,  # 文件最后修改时间
-                    "hash": file_hash,
+                    # 第一阶段只读取元数据，暂时还没有计算内容哈希。
+                    "hash": None,
                 }
 
                 # 上面的读取操作全部成功后，再正式更新统计结果。
@@ -79,12 +78,12 @@ def scan_directory(target):
                 else:
                     extension_count[extension] = 1
 
-                # 如果这个哈希值第一次出现，先创建一个空的路径列表。
-                if file_hash not in hash_groups:
-                    hash_groups[file_hash] = []
+                # 如果这个文件大小第一次出现，先创建一个空列表。
+                if file_size not in size_groups:
+                    size_groups[file_size] = []
 
-                # 把当前文件加入对应的哈希分组。
-                hash_groups[file_hash].append(path)
+                # 将当前文件记录加入对应的大小分组。
+                size_groups[file_size].append(file_record)
                 file_records.append(file_record)  # 将文件记录添加到列表中
 
                 print(path)
@@ -94,8 +93,42 @@ def scan_directory(target):
             print(f"Reason: {error}")
             continue
 
-    # 把扫描得到的四项数据返回给 main()。
-    # return file_count, total_size, extension_count, hash_groups
+    # 第二阶段：只有相同大小的候选文件才需要读取内容并计算哈希。
+    hashed_file_count = 0
+
+    for file_size, records in size_groups.items():
+        # 这个大小只有一个文件时，它不可能与其他文件内容完全相同。
+        if len(records) <= 1:
+            continue
+
+        for file_record in records:
+            path = Path(file_record["path"])
+
+            try:
+                file_hash = calculate_hash(path)
+            except (PermissionError, OSError) as error:
+                # 元数据已经读取成功，所以保留记录；但不参与重复文件判断。
+                print(f"Hash skipped: {path}")
+                print(f"Reason: {error}")
+                continue
+
+            hashed_file_count += 1
+            file_record["hash"] = file_hash
+
+            # 如果这个哈希值第一次出现，先创建一个空的路径列表。
+            if file_hash not in hash_groups:
+                hash_groups[file_hash] = []
+
+            # 把当前文件加入对应的哈希分组。
+            hash_groups[file_hash].append(path)
+
+    # 只显示包含两个或更多文件的大小候选组。
+    print("Same-size candidate groups:")
+    for file_size, records in size_groups.items():
+        if len(records) > 1:
+            print(f" - {file_size} bytes: {len(records)} files")
+
+    print(f"Hashed files:{hashed_file_count}")
 
     return file_count, total_size, extension_count, hash_groups, file_records
 
