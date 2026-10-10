@@ -1,5 +1,6 @@
 from pathlib import Path  # 路径处理工具，以后用 Path 表示路径
 import hashlib  # 哈希算法库，用于计算文件的哈希值
+import sys  # 系统相关库，用于获取命令行参数和退出程序
 
 
 # -------------------- 根据文件内容计算哈希值 --------------------
@@ -99,12 +100,25 @@ def print_report(file_count, total_size, extension_count, hash_groups):
 # -------------------- 程序主流程 --------------------
 def main():
     """设置扫描目标，并组织程序的执行流程。"""
-    target = Path("test_data")  # 表示当前项目目录下的 test_data 文件夹
 
-    # scan_directory() 返回四项结果，左侧四个变量按照相同顺序分别接收。
+    # sys.argv[0] 是程序路径，sys.argv[1] 是用户提供的第一个参数。
+    if len(sys.argv) > 1:
+        target = Path(sys.argv[1])  # 从命令行参数获取扫描目标
+    else:
+        target = Path("test_data")
+    
+    # 如果路径不存在，显示提示并结束 main()。
+    if not target.exists():
+        print(f"Error: path does not exist: {target}")
+        return
+
+    # 如果路径存在但不是文件夹，也不能进行目录扫描。
+    if not target.is_dir():
+        print(f"Error: path is not a directory: {target}")
+        return
+
     file_count, total_size, extension_count, hash_groups = scan_directory(target)
 
-    # 把扫描结果交给报告函数显示。
     print_report(
         file_count,
         total_size,
