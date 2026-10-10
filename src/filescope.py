@@ -32,6 +32,10 @@ def calculate_hash(file_path):
 
 # -------------------- 扫描目录并收集数据 --------------------
 def scan_directory(target):
+
+    # 结构化记录
+    file_records=[]  # 用于存储每个文件的路径、大小、扩展名和哈希值
+
     """扫描目标目录，返回文件统计信息和哈希分组。"""
     file_count = 0  # 统计文件数量
     total_size = 0  # 统计所有文件的总大小
@@ -40,37 +44,64 @@ def scan_directory(target):
 
     # rglob("*") 会递归遍历目标目录中的所有文件和子目录。
     for path in target.rglob("*"):
-        # 判断当前路径是否为文件，排除文件夹，因为当前版本只处理文件。
-        if path.is_file():
-            file_count += 1
-            total_size += path.stat().st_size  # st_size 表示文件大小，单位是字节
-            print(path)
+        try:
+            # 判断当前路径是否为文件，排除文件夹，因为当前版本只处理文件。
+            if path.is_file():
+                # 先读取并整理当前文件的所有信息。
+                # 这一阶段只准备数据，暂时不修改数量、大小等统计结果。
+                file_info = path.stat()
+                file_size = file_info.st_size
 
-            # 获取文件扩展名并转成小写，避免把 .TXT 和 .txt 当成两种类型。
-            extension = path.suffix.lower()
+                # 获取文件扩展名并转成小写，避免把 .TXT 和 .txt 当成两种类型。
+                extension = path.suffix.lower()
 
-            # 如果扩展名已经出现过，数量加一；否则第一次创建记录。
-            if extension in extension_count:
-                extension_count[extension] += 1
-            else:
-                extension_count[extension] = 1
+                # 扫描当前文件时，同时计算它的内容哈希值。
+                file_hash = calculate_hash(path)
 
-            # 扫描当前文件时，同时计算它的内容哈希值。
-            file_hash = calculate_hash(path)
+                # 整理结构化文件属性记录（字典，键：值）。
+                file_record = {
+                    "path": str(path.resolve()),  # 文件绝对路径
+                    "name": path.name,
+                    "size": file_size,
+                    "extension": extension,
+                    "modified_time": file_info.st_mtime,  # 文件最后修改时间
+                    "hash": file_hash,
+                }
 
-            # 如果这个哈希值第一次出现，先创建一个空的路径列表。
-            if file_hash not in hash_groups:
-                hash_groups[file_hash] = []
+                # 上面的读取操作全部成功后，再正式更新统计结果。
+                # 这样发生异常的文件不会留下不完整的统计数据。
+                file_count += 1
+                total_size += file_size
 
-            # 把当前文件加入对应的哈希分组。
-            hash_groups[file_hash].append(path)
+                # 如果扩展名已经出现过，数量加一；否则第一次创建记录。
+                if extension in extension_count:
+                    extension_count[extension] += 1
+                else:
+                    extension_count[extension] = 1
+
+                # 如果这个哈希值第一次出现，先创建一个空的路径列表。
+                if file_hash not in hash_groups:
+                    hash_groups[file_hash] = []
+
+                # 把当前文件加入对应的哈希分组。
+                hash_groups[file_hash].append(path)
+                file_records.append(file_record)  # 将文件记录添加到列表中
+
+                print(path)
+        
+        except (PermissionError, OSError) as error:
+            print(f"Skipped: {path}")
+            print(f"Reason: {error}")
+            continue
 
     # 把扫描得到的四项数据返回给 main()。
-    return file_count, total_size, extension_count, hash_groups
+    # return file_count, total_size, extension_count, hash_groups
+
+    return file_count, total_size, extension_count, hash_groups, file_records
 
 
 # -------------------- 显示扫描报告 --------------------
-def print_report(file_count, total_size, extension_count, hash_groups):
+def print_report(file_count, total_size, extension_count, hash_groups, file_records):
     """显示文件扫描结果和重复文件报告。"""
     print(f"Total files:{file_count}")  # 输出文件总数
     print(f"Total size:{total_size} bytes")  # 输出文件总大小
@@ -117,14 +148,16 @@ def main():
         print(f"Error: path is not a directory: {target}")
         return
 
-    file_count, total_size, extension_count, hash_groups = scan_directory(target)
+    file_count, total_size, extension_count, hash_groups, file_records = scan_directory(target)
 
     print_report(
         file_count,
         total_size,
         extension_count,
         hash_groups,
+        file_records
     )
+    print(f"Records collected:{len(file_records)}")
 
 
 # 只有直接运行 filescope.py 时才调用 main()，从这里启动程序。
