@@ -217,6 +217,19 @@ def main():
     )
     print(f"Records collected:{len(file_records)}")
 
+        # database.py 与当前文件都在 src 文件夹中。
+    from database import save_scan_results
+
+    scan_id, inserted_file_count = save_scan_results(
+        target.resolve(),
+        file_count,
+        total_size,
+        file_records,
+    )
+
+    print(f"Saved scan ID:{scan_id}")
+    print(f"Saved file records:{inserted_file_count}")
+
 
 # 只有直接运行 filescope.py 时才调用 main()，从这里启动程序。
 if __name__ == "__main__":

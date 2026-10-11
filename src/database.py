@@ -48,9 +48,101 @@ def initialize_database():
         # 无论成功还是失败，最后都关闭数据库连接
         connection.close()
 
+def insert_scan_task(connection, target_path, file_count, total_size):
+    # 向 scan_tasks 表插入一次扫描任务，并返回新任务的 id
+    cursor=connection.execute(
+
+        # SQL字符串开始
+        """
+        INSERT INTO scan_tasks(
+            target_path,
+            file_count,
+            total_size
+        )
+        VALUES(?,?,?)
+        """, # SQL字符串结束
+        (
+            str(target_path),
+            file_count,
+            total_size,
+        ),
+    )
+    return cursor.lastrowid
+
+def insert_files(connection, scan_id, file_records):
+    """把一次扫描得到的文件记录批量插入 files 表。"""
+    file_rows = []
+
+    for file_record in file_records:
+        file_row = (
+            scan_id,
+            file_record["path"],
+            file_record["name"],
+            file_record["size"],
+            file_record["extension"],
+            file_record["modified_time"],
+            file_record["hash"],
+        )
+
+        file_rows.append(file_row)
+
+    connection.executemany(
+        """
+        INSERT INTO files (
+            scan_id,
+            path,
+            name,
+            size,
+            extension,
+            modified_time,
+            hash
+        )
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+        """,
+        file_rows,
+    )
+
+    return len(file_rows)
+
+
+def save_scan_results(target_path, file_count, total_size, file_records):
+    """把一次完整的扫描结果保存到数据库。"""
+    initialize_database()
+    connection = sqlite3.connect(DATABASE_PATH)
+
+    try:
+        # 每次建立 SQLite 连接后，都要重新开启外键检查。
+        connection.execute("PRAGMA foreign_keys = ON")
+
+        # 先插入扫描任务，取得数据库自动生成的 scan_id。
+        scan_id = insert_scan_task(
+            connection,
+            target_path,
+            file_count,
+            total_size,
+        )
+
+        # 再使用相同的 scan_id，批量插入这次扫描发现的文件。
+        inserted_file_count = insert_files(
+            connection,
+            scan_id,
+            file_records,
+        )
+
+        # 扫描任务和文件记录都写入成功后，才正式保存。
+        connection.commit()
+
+        return scan_id, inserted_file_count
+
+    except Exception:
+        # 中途任何一步失败，就撤销本次尚未提交的数据库修改。
+        connection.rollback()
+        raise
+
+    finally:
+        # 无论成功还是失败，最后都关闭数据库连接。
+        connection.close()
+
 if __name__=="__main__":
     initialize_database()
     print(f"Database initialized: {DATABASE_PATH}")
-
-
-
