@@ -134,6 +134,28 @@ def scan_directory(target):
 
 
 # -------------------- 显示扫描报告 --------------------
+def calculate_reclaimable_space(hash_groups, file_records):
+    """计算重复文件理论上可以释放的空间。"""
+    # 建立“哈希值 -> 文件大小”的对应关系。
+    # 同一个哈希分组中的文件内容相同，因此大小也相同，只需记录一次大小。
+    size_by_hash = {}
+    for file_record in file_records:
+        file_hash = file_record["hash"]
+        if file_hash is not None:
+            size_by_hash[file_hash] = file_record["size"]
+
+    reclaimable_space = 0
+
+    for file_hash, paths in hash_groups.items():
+        if len(paths) > 1:
+            # 每组保留一个文件，其余文件都视为可以删除的重复副本。
+            extra_copy_count = len(paths) - 1
+            file_size = size_by_hash[file_hash]
+            reclaimable_space += file_size * extra_copy_count
+
+    return reclaimable_space
+
+
 def print_report(file_count, total_size, extension_count, hash_groups, file_records):
     """显示文件扫描结果和重复文件报告。"""
     print(f"Total files:{file_count}")  # 输出文件总数
@@ -159,6 +181,9 @@ def print_report(file_count, total_size, extension_count, hash_groups, file_reco
                 print(f" - {path}")  # 输出当前重复组中的文件路径
 
     print(f"Duplicate groups: {duplicate_group_count}")
+
+    reclaimable_space = calculate_reclaimable_space(hash_groups, file_records)
+    print(f"Reclaimable space:{reclaimable_space} bytes")
 
 
 # -------------------- 程序主流程 --------------------
