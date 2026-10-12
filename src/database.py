@@ -209,6 +209,59 @@ def get_scan_files(scan_id):
         connection.close()
 
 
+def get_largest_files(scan_id, limit):
+    """查询某次扫描中最大的若干文件。"""
+    initialize_database()
+    connection = sqlite3.connect(DATABASE_PATH)
+
+    try:
+        cursor = connection.execute(
+            """
+            SELECT
+                name,
+                path,
+                size,
+                extension
+            FROM files
+            WHERE scan_id = ?
+            ORDER BY size DESC
+            LIMIT ?
+            """,
+            (scan_id, limit),
+        )
+
+        return cursor.fetchall()
+
+    finally:
+        connection.close()
+
+
+def get_file_type_stats(scan_id):
+    """按扩展名统计某次扫描的文件数量和总大小。"""
+    initialize_database()
+    connection = sqlite3.connect(DATABASE_PATH)
+
+    try:
+        cursor = connection.execute(
+            """
+            SELECT
+                extension,
+                COUNT(*) AS file_count,
+                SUM(size) AS total_size
+            FROM files
+            WHERE scan_id = ?
+            GROUP BY extension
+            ORDER BY total_size DESC, extension ASC
+            """,
+            (scan_id,),
+        )
+
+        return cursor.fetchall()
+
+    finally:
+        connection.close()
+
+
 def print_scan_history(scan_history):
     """以便于阅读的格式显示扫描历史。"""
     print("Scan history:")
@@ -254,6 +307,34 @@ def print_scan_details(scan_task, file_records):
         print(f"- {name} | {size} bytes | {extension}")
         print(f"  Path:{path}")
         print(f"  SHA-256:{hash_text}")
+
+
+def print_largest_files(scan_id, file_records):
+    """显示某次扫描中最大的文件。"""
+    print(f"Largest files in scan {scan_id}:")
+
+    if not file_records:
+        print("No file records.")
+        return
+
+    for rank, file_record in enumerate(file_records, start=1):
+        name, path, size, extension = file_record
+        print(f"{rank}. {name} | {size} bytes | {extension}")
+        print(f"   Path:{path}")
+
+
+def print_file_type_stats(scan_id, type_stats):
+    """显示某次扫描中各类文件的数量和总大小。"""
+    print(f"File type statistics for scan {scan_id}:")
+
+    if not type_stats:
+        print("No file records.")
+        return
+
+    for extension, file_count, total_size in type_stats:
+        # 没有扩展名的文件在数据库中保存为空字符串，这里给它一个易读名称。
+        extension_text = extension if extension else "[no extension]"
+        print(f"{extension_text} | {file_count} files | {total_size} bytes")
 
 
 if __name__ == "__main__":

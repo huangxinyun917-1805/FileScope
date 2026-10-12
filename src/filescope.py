@@ -221,6 +221,61 @@ def main():
         print_scan_details(scan_task, file_records)
         return
 
+    # largest 后面需要扫描编号，可选填写返回数量，默认显示 10 个文件。
+    if len(sys.argv) > 1 and sys.argv[1] == "largest":
+        if len(sys.argv) < 3:
+            print("Usage: python src\\filescope.py largest <scan_id> [limit]")
+            return
+
+        try:
+            scan_id = int(sys.argv[2])
+            limit = int(sys.argv[3]) if len(sys.argv) > 3 else 10
+        except ValueError:
+            print("Error: scan ID and limit must be integers.")
+            return
+
+        if scan_id <= 0 or limit <= 0:
+            print("Error: scan ID and limit must be greater than 0.")
+            return
+
+        from database import get_largest_files, get_scan_task, print_largest_files
+
+        scan_task = get_scan_task(scan_id)
+        if scan_task is None:
+            print("Error: scan ID does not exist.")
+            return
+
+        largest_files = get_largest_files(scan_id, limit)
+        print_largest_files(scan_id, largest_files)
+        return
+
+    # types 后面需要一个扫描编号，例如：python src\filescope.py types 2
+    if len(sys.argv) > 1 and sys.argv[1] == "types":
+        if len(sys.argv) < 3:
+            print("Usage: python src\\filescope.py types <scan_id>")
+            return
+
+        try:
+            scan_id = int(sys.argv[2])
+        except ValueError:
+            print(f"Error: scan ID must be an integer: {sys.argv[2]}")
+            return
+
+        if scan_id <= 0:
+            print("Error: scan ID must be greater than 0.")
+            return
+
+        from database import get_file_type_stats, get_scan_task, print_file_type_stats
+
+        scan_task = get_scan_task(scan_id)
+        if scan_task is None:
+            print("Error: scan ID does not exist.")
+            return
+
+        type_stats = get_file_type_stats(scan_id)
+        print_file_type_stats(scan_id, type_stats)
+        return
+
     # sys.argv[0] 是程序路径，sys.argv[1] 是用户提供的第一个参数。
     if len(sys.argv) > 1: # Python 用来接收终端命令后面附加内容的列表
         target = Path(sys.argv[1])  # 从命令行参数获取扫描目标
