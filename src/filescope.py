@@ -198,6 +198,29 @@ def main():
         print_scan_history(scan_history)
         return
 
+    # show 后面需要一个扫描编号，例如：python src\filescope.py show 2
+    if len(sys.argv) > 1 and sys.argv[1] == "show":
+        if len(sys.argv) < 3:
+            print("Usage: python src\\filescope.py show <scan_id>")
+            return
+
+        try:
+            scan_id = int(sys.argv[2])
+        except ValueError:
+            print(f"Error: scan ID must be an integer: {sys.argv[2]}")
+            return
+
+        if scan_id <= 0:
+            print("Error: scan ID must be greater than 0.")
+            return
+
+        from database import get_scan_files, get_scan_task, print_scan_details
+
+        scan_task = get_scan_task(scan_id)
+        file_records = get_scan_files(scan_id) if scan_task is not None else []
+        print_scan_details(scan_task, file_records)
+        return
+
     # sys.argv[0] 是程序路径，sys.argv[1] 是用户提供的第一个参数。
     if len(sys.argv) > 1: # Python 用来接收终端命令后面附加内容的列表
         target = Path(sys.argv[1])  # 从命令行参数获取扫描目标

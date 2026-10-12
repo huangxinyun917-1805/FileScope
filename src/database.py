@@ -154,6 +154,61 @@ def get_scan_history():
     finally:
         connection.close()
 
+
+def get_scan_task(scan_id):
+    """根据扫描编号查询一条扫描任务。"""
+    initialize_database()
+    connection = sqlite3.connect(DATABASE_PATH)
+
+    try:
+        cursor = connection.execute(
+            """
+            SELECT
+                id,
+                target_path,
+                scanned_at,
+                file_count,
+                total_size
+            FROM scan_tasks
+            WHERE id = ?
+            """,
+            (scan_id,),
+        )
+
+        return cursor.fetchone()
+
+    finally:
+        connection.close()
+
+
+def get_scan_files(scan_id):
+    # 查询某一次扫描包含的文件，并按照文件大小从大到小返回
+    initialize_database()
+    connection=sqlite3.connect(DATABASE_PATH)
+
+    try:
+        cursor=connection.execute(
+            """
+            SELECT
+                name,
+                path,
+                size,
+                extension,
+                hash
+            FROM files
+            WHERE scan_id=?
+            ORDER BY size DESC
+
+            """,
+            (scan_id,), # 是只有一个元素的元组，末尾逗号不能省略。它负责为 SQL 中唯一的 ? 提供值
+        )
+        file_records = cursor.fetchall()
+        return file_records
+
+    finally:
+        connection.close()
+
+
 def print_scan_history(scan_history):
     """以便于阅读的格式显示扫描历史。"""
     print("Scan history:")
@@ -172,6 +227,33 @@ def print_scan_history(scan_history):
             f"Files:{file_count} | "
             f"Size:{total_size} bytes"
         )
+
+
+def print_scan_details(scan_task, file_records):
+    """显示一次扫描的概况和文件记录。"""
+    if scan_task is None:
+        print("Error: scan ID does not exist.")
+        return
+
+    scan_id, target_path, scanned_at, file_count, total_size = scan_task
+
+    print(f"Scan ID:{scan_id}")
+    print(f"Path:{target_path}")
+    print(f"Time:{scanned_at}")
+    print(f"Files:{file_count}")
+    print(f"Size:{total_size} bytes")
+    print("File records:")
+
+    if not file_records:
+        print("No file records.")
+        return
+
+    for name, path, size, extension, file_hash in file_records:
+        hash_text = file_hash if file_hash is not None else "Not calculated"
+
+        print(f"- {name} | {size} bytes | {extension}")
+        print(f"  Path:{path}")
+        print(f"  SHA-256:{hash_text}")
 
 
 if __name__ == "__main__":
