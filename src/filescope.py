@@ -190,8 +190,16 @@ def print_report(file_count, total_size, extension_count, hash_groups, file_reco
 def main():
     """设置扫描目标，并组织程序的执行流程。"""
 
+    # 如果用户输入 history，就查询历史，不进行目录扫描。
+    if len(sys.argv)>1 and sys.argv[1] == "history":
+        from database import get_scan_history, print_scan_history
+
+        scan_history=get_scan_history()
+        print_scan_history(scan_history)
+        return
+
     # sys.argv[0] 是程序路径，sys.argv[1] 是用户提供的第一个参数。
-    if len(sys.argv) > 1:
+    if len(sys.argv) > 1: # Python 用来接收终端命令后面附加内容的列表
         target = Path(sys.argv[1])  # 从命令行参数获取扫描目标
     else:
         target = Path("test_data")

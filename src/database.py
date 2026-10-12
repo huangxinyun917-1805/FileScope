@@ -154,13 +154,13 @@ def get_scan_history():
     finally:
         connection.close()
 
-if __name__ == "__main__":
-    scan_history = get_scan_history()
-
+def print_scan_history(scan_history):
+    """以便于阅读的格式显示扫描历史。"""
     print("Scan history:")
 
     if not scan_history:
         print("No scan history.")
+        return
 
     for scan in scan_history:
         scan_id, target_path, scanned_at, file_count, total_size = scan
@@ -172,3 +172,8 @@ if __name__ == "__main__":
             f"Files:{file_count} | "
             f"Size:{total_size} bytes"
         )
+
+
+if __name__ == "__main__":
+    scan_history = get_scan_history()
+    print_scan_history(scan_history)
