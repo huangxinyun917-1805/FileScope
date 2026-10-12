@@ -262,6 +262,84 @@ def get_file_type_stats(scan_id):
         connection.close()
 
 
+def get_duplicate_files(scan_id):
+    """查询某次扫描中内容完全相同的文件路径和哈希值。"""
+    initialize_database()
+    connection = sqlite3.connect(DATABASE_PATH)
+
+    try:
+        # 学习任务：在三引号中填写“查询重复文件”的核心 SQL。
+        # 内层：找出出现两次以上的哈希值
+        # 外层：找出拥有这些哈希值的文件路径
+
+        # 内层负责找到重复组，外层负责取出重复组里的所有文件
+        # 后一项依赖前一项，所以是里外分层
+
+        duplicate_files_sql = """
+            SELECT
+                path,
+                hash
+            FROM files
+            WHERE scan_id=? AND hash IN (
+                SELECT hash
+                FROM files
+                WHERE scan_id=? AND hash IS NOT NULL
+                GROUP BY hash
+                HAVING COUNT(*)>1
+            )
+
+        """
+
+        cursor = connection.execute(
+            duplicate_files_sql,
+            # 外层查询和子查询各有一个 scan_id = ?，所以要提供两次编号。
+            (scan_id, scan_id),
+        )
+
+        return cursor.fetchall()
+
+    finally:
+        connection.close()
+
+
+def count_duplicate_directories(duplicate_files):
+    """统计每个目录中出现了多少个重复文件。"""
+    directory_counts = {}
+
+    for path, file_hash in duplicate_files:
+        # Path(path).parent 取得文件所在的父目录。
+        directory = str(Path(path).parent)
+
+        # 如果目录已经出现就加一，否则从一开始计数。
+
+        if directory in directory_counts:
+        # 已经出现过：原数量加一
+            directory_counts[directory]+=1
+        else:
+        # 第一次出现：数量设为一
+            directory_counts[directory]=1
+
+    return directory_counts
+
+
+def print_duplicate_directories(scan_id, directory_counts):
+    """按照重复文件数量从多到少显示目录。"""
+    print(f"Duplicate file directories for scan {scan_id}:")
+
+    if not directory_counts:
+        print("No duplicate files.")
+        return
+
+    sorted_directories = sorted(
+        directory_counts.items(),
+        key=lambda item: item[1],
+        reverse=True,
+    )
+
+    for rank, (directory, count) in enumerate(sorted_directories, start=1):
+        print(f"{rank}. {directory} | {count} duplicate files")
+
+
 def print_scan_history(scan_history):
     """以便于阅读的格式显示扫描历史。"""
     print("Scan history:")
@@ -317,6 +395,7 @@ def print_largest_files(scan_id, file_records):
         print("No file records.")
         return
 
+    # 给文件自动增加从 1 开始的排名；只显示，不执行SQL
     for rank, file_record in enumerate(file_records, start=1):
         name, path, size, extension = file_record
         print(f"{rank}. {name} | {size} bytes | {extension}")

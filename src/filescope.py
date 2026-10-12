@@ -276,6 +276,39 @@ def main():
         print_file_type_stats(scan_id, type_stats)
         return
 
+    # duplicate-dirs 统计某次扫描中重复文件来自哪些目录。
+    if len(sys.argv) > 1 and sys.argv[1] == "duplicate-dirs":
+        if len(sys.argv) < 3:
+            print("Usage: python src\\filescope.py duplicate-dirs <scan_id>")
+            return
+
+        try:
+            scan_id = int(sys.argv[2])
+        except ValueError:
+            print(f"Error: scan ID must be an integer: {sys.argv[2]}")
+            return
+
+        if scan_id <= 0:
+            print("Error: scan ID must be greater than 0.")
+            return
+
+        from database import (
+            count_duplicate_directories,
+            get_duplicate_files,
+            get_scan_task,
+            print_duplicate_directories,
+        )
+
+        scan_task = get_scan_task(scan_id)
+        if scan_task is None:
+            print("Error: scan ID does not exist.")
+            return
+
+        duplicate_files = get_duplicate_files(scan_id)
+        directory_counts = count_duplicate_directories(duplicate_files)
+        print_duplicate_directories(scan_id, directory_counts)
+        return
+
     # sys.argv[0] 是程序路径，sys.argv[1] 是用户提供的第一个参数。
     if len(sys.argv) > 1: # Python 用来接收终端命令后面附加内容的列表
         target = Path(sys.argv[1])  # 从命令行参数获取扫描目标
