@@ -1,19 +1,3 @@
-'''
-    初始化数据库的结构
-
-    打开或创建 filescope.db
-        ↓
-    读取 schema.sql
-        ↓
-    创建 scan_tasks 表
-        ↓
-    创建 files 表
-        ↓
-    提交修改并关闭连接
-
-'''
-
-
 from pathlib import Path
 import sqlite3 # SQLite接口
 
@@ -143,6 +127,48 @@ def save_scan_results(target_path, file_count, total_size, file_records):
         # 无论成功还是失败，最后都关闭数据库连接。
         connection.close()
 
-if __name__=="__main__":
+def get_scan_history():
+    # 查询扫描记录
     initialize_database()
-    print(f"Database initialized: {DATABASE_PATH}")
+    connection=sqlite3.connect(DATABASE_PATH)
+
+    try:
+        cursor=connection.execute(
+            """
+
+            SELECT
+                id,
+                target_path,
+                scanned_at,
+                file_count,
+                total_size
+            FROM scan_tasks
+            ORDER BY id DESC
+
+            """
+        )
+
+        scan_history=cursor.fetchall()
+        return scan_history
+
+    finally:
+        connection.close()
+
+if __name__ == "__main__":
+    scan_history = get_scan_history()
+
+    print("Scan history:")
+
+    if not scan_history:
+        print("No scan history.")
+
+    for scan in scan_history:
+        scan_id, target_path, scanned_at, file_count, total_size = scan
+
+        print(
+            f"ID:{scan_id} | "
+            f"Path:{target_path} | "
+            f"Time:{scanned_at} | "
+            f"Files:{file_count} | "
+            f"Size:{total_size} bytes"
+        )
