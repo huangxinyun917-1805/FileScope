@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang='zh-CN'>
+<head>
+    <meta charset='utf-8'>
+    <meta name='viewport' content='width=device-width, initial-scale=1'>
+    <title>扫描历史 · FileScope</title>
+    <style>
+        body { font-family: system-ui, sans-serif; margin: 40px auto; padding: 0 20px; max-width: 1100px; color: #243244; background: #f5f7fa; }
+        table { width: 100%; border-collapse: collapse; background: white; }
+        th, td { padding: 14px; border-bottom: 1px solid #dce2ea; text-align: left; }
+        td { overflow-wrap: anywhere; }
+        th { background: #e7edf4; }
+        .table-wrap { overflow-x: auto; }
+    </style>
+</head>
+<body>
+    <h1>FileScope · 扫描历史</h1>
+    <p>已保存的扫描记录，时间为数据库记录的 UTC 时间。</p>
+    <!-- Jinja 模板：有记录时显示表格。 -->
+    {% if scans %}
+    <div class='table-wrap'>
+    <table>
+        <thead><tr><th>编号</th><th>扫描目录</th><th>时间（UTC）</th><th>文件数</th><th>总大小（字节）</th></tr></thead>
+        <tbody>
+            <!-- 字段顺序与 get_scan_history 中的 SELECT 一致。 -->
+            {% for scan_id, target_path, scanned_at, file_count, total_size in scans %}
+            <tr>
+                <td>{{ scan_id }}</td>
+                <td>{{ target_path }}</td>
+                <td>{{ scanned_at }}</td>
+                <td>{{ file_count }}</td>
+                <td>{{ total_size }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    </div>
+    {% else %}
+    <p>还没有扫描记录，请先使用现有命令行扫描测试目录。</p>
+    {% endif %}
+</body>
+</html>
