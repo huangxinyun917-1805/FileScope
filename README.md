@@ -51,6 +51,8 @@ python -m pytest -q
 
 ## 项目框架
 
+展示项目与复盘个人参与情况见 [演示与学习记录](docs/demo-and-learning.md)。
+
 Linux 环境的启动步骤、验证结果与跨系统路径限制见 [WSL Ubuntu 运行与验证](docs/linux-validation.md)。
 
 完整的模块职责与数据流见 [项目框架说明](docs/architecture.md)。网页使用 Flask + Jinja 服务端模板，暂不引入独立前端框架、后台任务队列或永久删除功能。
