@@ -21,6 +21,7 @@ FileScope 是一个本地文件扫描、重复文件检测与存储分析平台�
 在项目根目录的 CMD 中：
 
 ```cmd
+cd /d "D:\ChatGPT\项目\FileScope"
 .venv\Scripts\activate
 python -m pip install -r requirements.txt
 python app.py
@@ -29,6 +30,30 @@ python app.py
 浏览器打开 http://127.0.0.1:5000/history，输入 `test_data`，点击“扫描并保存”。
 扫描成功后自动打开本次详情，历史列表中新增记录。相对路径以项目根目录为起点。
 当前同步执行扫描，等待完成后再进行下一次提交。Ctrl+C 停止服务；修改代码后需保存并重启。
+
+如果是新下载的项目，还没有虚拟环境，先在项目根目录运行 `python -m venv .venv`，再执行上面的激活和安装步骤。已有虚拟环境不必重建。
+
+## 命令行与测试
+
+在已激活虚拟环境的项目根目录运行：
+
+```cmd
+python src\filescope.py test_data
+python src\filescope.py history
+python src\filescope.py show 2
+python -m pip install -r requirements-dev.txt
+python -m pytest -q
+```
+
+前三条分别是扫描并保存、查询历史、查看编号为 2 的扫描；编号需要替换成自己的已有记录。扫描命令会新增数据库记录，历史查询不会重新扫描文件。后两条用于安装测试依赖并执行自动化测试。
+
+网页入口：`/history` 查看历史与提交扫描，`/scan/<编号>` 查看详情，`/quarantine` 查看隔离与恢复，`/api/status` 返回状态 JSON。网址在浏览器打开，不接在 `python app.py` 后面。
+
+## 项目框架
+
+Linux 环境的启动步骤、验证结果与跨系统路径限制见 [WSL Ubuntu 运行与验证](docs/linux-validation.md)。
+
+完整的模块职责与数据流见 [项目框架说明](docs/architecture.md)。网页使用 Flask + Jinja 服务端模板，暂不引入独立前端框架、后台任务队列或永久删除功能。
 
 ## 代码调用关系
 
