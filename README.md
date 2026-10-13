@@ -2,7 +2,7 @@
 
 FileScope 是一个本地文件扫描、重复文件检测与存储分析平台。
 
-技术栈：Python、SQLite、Flask、Jinja、HTML/CSS、pytest。当前是 AI 辅助完成的本机学习与演示项目，不是生产部署版本。
+技术栈：Python、SQLite、Flask、Jinja、HTML/CSS、pytest。当前是本机学习与演示项目，不是生产部署版本。
 
 ## 新下载项目的快速开始
 
