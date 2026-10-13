@@ -1,11 +1,29 @@
-from flask import Flask, render_template, abort, request, redirect, url_for
+from flask import Flask, render_template, abort, request, redirect, url_for, session, flash
 import sqlite3
+import secrets
 from src.database import get_scan_history, get_scan_task, get_scan_files
 from src.reports import build_duplicate_report
 from src.services import scan_and_save
+from src.quarantine import isolate_file, restore_file, get_quarantine_records
 
 # Flask 应用会在同级 templates 文件夹寻找 HTML 模板。
 app = Flask(__name__)
+app.secret_key = secrets.token_bytes(32)
+
+
+@app.context_processor
+def operation_token():
+    # 文件操作表单必须来自当前浏览器会话。
+    if 'operation_token' not in session:
+        session['operation_token'] = secrets.token_hex(32)
+    return {'operation_token': session['operation_token']}
+
+
+def check_operation_token():
+    expected = session.get('operation_token', '')
+    submitted = request.form.get('operation_token', '')
+    if not expected or not secrets.compare_digest(expected, submitted):
+        abort(400)
 
 # 浏览器访问这些网址时，Flask 调用 history 函数。
 @app.route('/')
@@ -59,7 +77,40 @@ def scan_detail(scan_id):
         files=file_records,
         duplicate_groups=duplicate_groups,
         reclaimable_space=reclaimable_space,
+        isolated_paths={r['original_path'] for r in get_quarantine_records()
+                        if r['status'] in ('isolated', 'pending')},
     )
+
+
+@app.route('/scan/<int:scan_id>/isolate', methods=['POST'])
+def isolate(scan_id):
+    check_operation_token()
+    try:
+        operation_id = isolate_file(
+            scan_id, request.form.get('candidate_path', ''),
+            request.form.get('reference_path', ''),
+        )
+        flash(f'副本已隔离，操作编号 {operation_id}。可在隔离区恢复。')
+        return redirect(url_for('quarantine_page'), code=303)
+    except (ValueError, OSError, sqlite3.Error) as error:
+        flash(f'未完成隔离：{error}')
+        return redirect(url_for('scan_detail', scan_id=scan_id), code=303)
+
+
+@app.route('/quarantine')
+def quarantine_page():
+    return render_template('quarantine.html', records=get_quarantine_records())
+
+
+@app.route('/quarantine/<int:operation_id>/restore', methods=['POST'])
+def restore(operation_id):
+    check_operation_token()
+    try:
+        restore_file(operation_id)
+        flash('文件已恢复到原位置。')
+    except (ValueError, OSError, sqlite3.Error) as error:
+        flash(f'未完成恢复：{error}')
+    return redirect(url_for('quarantine_page'), code=303)
 
 
 if __name__ == '__main__':

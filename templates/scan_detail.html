@@ -17,6 +17,10 @@
 </head>
 <body>
     <a href="{{ url_for('history') }}">返回扫描历史</a>
+    · <a href="{{ url_for('quarantine_page') }}">隔离区与恢复</a>
+    {% for message in get_flashed_messages() %}
+    <p role="status">{{ message }}</p>
+    {% endfor %}
 
     <!-- scan 是路由传来的扫描概况，字段顺序与 SELECT 一致。 -->
     {% set scan_id, target_path, scanned_at, file_count, total_size = scan %}
@@ -31,13 +35,28 @@
     <h2>重复文件分组</h2>
     <p>共 {{ duplicate_groups|length }} 组，理论可释放空间 {{ reclaimable_space }} 字节。</p>
     <p>按本次扫描保存的哈希和大小分组，假设每组保留一份。未复查当前文件、硬链接或实际磁盘占用，结果仅用于查看。</p>
+    <p>每组第一项作为本次操作的保留文件，其余可逐个隔离。点击后会再次检查文件，隔离不会立即释放磁盘空间。</p>
     {% for group in duplicate_groups %}
     <section>
         <h3>第 {{ loop.index }} 组 · {{ group.members|length }} 个文件</h3>
         <p>每份 {{ group.size }} 字节，理论可释放 {{ group.reclaimable_space }} 字节。</p>
         <ul>
             {% for member in group.members %}
-            <li>{{ member.name }} — {{ member.path }}</li>
+            <li>
+                {{ member.name }} — {{ member.path }}
+                {% if loop.first %}
+                <strong>（保留文件）</strong>
+                {% elif member.path in isolated_paths %}
+                <span>（已隔离或操作待核对）</span>
+                {% else %}
+                <form action="{{ url_for('isolate', scan_id=scan_id) }}" method="post">
+                    <input type="hidden" name="operation_token" value="{{ operation_token }}">
+                    <input type="hidden" name="reference_path" value="{{ group.members[0].path }}">
+                    <input type="hidden" name="candidate_path" value="{{ member.path }}">
+                    <button type="submit">将此副本移到隔离区</button>
+                </form>
+                {% endif %}
+            </li>
             {% endfor %}
         </ul>
     </section>

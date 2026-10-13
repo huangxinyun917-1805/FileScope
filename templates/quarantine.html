@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>隔离区 · FileScope</title>
+    <style>
+        body { font-family: system-ui, sans-serif; max-width: 1100px; margin: 40px auto; padding: 0 20px; background: #f5f7fa; color: #243244; }
+        section { background: white; margin: 16px 0; padding: 18px; overflow-wrap: anywhere; }
+    </style>
+</head>
+<body>
+    <a href="{{ url_for('history') }}">返回扫描历史</a>
+    <h1>隔离区与恢复</h1>
+    <p>文件仍保留在磁盘上。恢复时原位置已有文件则拒绝覆盖。</p>
+    {% for message in get_flashed_messages() %}<p role="status">{{ message }}</p>{% endfor %}
+    {% for record in records %}
+    <section>
+        <h2>操作 {{ record.id }} · {{ {'pending':'待核对', 'isolated':'已隔离', 'restored':'已恢复', 'failed':'隔离失败'}[record.status] }}</h2>
+        <p>原路径：{{ record.original_path }}</p>
+        <p>隔离路径：{{ record.quarantine_path }}</p>
+        <p>保留文件：{{ record.reference_path }}</p>
+        <p>记录时间（UTC）：{{ record.created_at }}</p>
+        {% if record.error %}<p>问题：{{ record.error }}</p>{% endif %}
+        {% if record.status in ('isolated', 'pending') %}
+        <form action="{{ url_for('restore', operation_id=record.id) }}" method="post">
+            <input type="hidden" name="operation_token" value="{{ operation_token }}">
+            <button type="submit">恢复到原位置</button>
+        </form>
+        {% endif %}
+    </section>
+    {% else %}
+    <p>还没有隔离操作记录。</p>
+    {% endfor %}
+</body>
+</html>

@@ -30,7 +30,7 @@ def scan_and_save(target_path):
     if not str(target_path).strip():
         raise ValueError("请输入扫描目录。")
 
-    target = Path(target_path)
+    target = Path(target_path) # target 是我们自己起名的变量，不是 Python函数。它保存“这次要扫描的目录”。
     # 相对路径统一相对于项目根目录，不受启动位置影响。
     if not target.is_absolute():
         target = PROJECT_ROOT / target

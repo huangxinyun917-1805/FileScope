@@ -1,6 +1,53 @@
 from pathlib import Path  # 路径处理工具，以后用 Path 表示路径
 import hashlib  # 哈希算法库，用于计算文件的哈希值
 import sys  # 系统相关库，用于获取命令行参数和退出程序
+import os
+
+QUARANTINE_ROOT = Path(__file__).resolve().parent.parent / 'quarantine'
+
+
+def file_snapshot(info):
+    """记录文件身份和属性，用于检测读取期间的变化。"""
+    return (info.st_dev, info.st_ino, info.st_size, info.st_mtime_ns, info.st_ctime_ns)
+
+
+def check_file_unchanged(path, snapshot):
+    """路径被替换、内容属性变化或变成符号链接时拒绝确认。"""
+    if path.is_symlink() or file_snapshot(path.stat()) != snapshot:
+        raise OSError(f"File changed during scan: {path}")
+
+
+def opened_file_matches(file, snapshot):
+    """比较身份、大小与修改时间；Windows 的 stat/fstat ctime 含义可能不同。"""
+    return file_snapshot(os.fstat(file.fileno()))[:4] == snapshot[:4]
+
+
+def files_equal(path_a, path_b):
+    """借鉴 fdupes：摘要匹配之后，分块确认实际字节内容。"""
+    snapshot_a = file_snapshot(path_a.stat())
+    snapshot_b = file_snapshot(path_b.stat())
+    equal = True
+
+    with path_a.open('rb') as first, path_b.open('rb') as second:
+        # 检查打开的文件是否仍然对应刚才观察到的路径。
+        if (not opened_file_matches(first, snapshot_a)
+                or not opened_file_matches(second, snapshot_b)):
+            raise OSError('File replaced before content comparison')
+        while True:
+            chunk_a = first.read(8192)
+            chunk_b = second.read(8192)
+            if chunk_a != chunk_b:
+                equal = False
+                break
+            if not chunk_a:
+                break
+        if (not opened_file_matches(first, snapshot_a)
+                or not opened_file_matches(second, snapshot_b)):
+            raise OSError('File changed during content comparison')
+
+    check_file_unchanged(path_a, snapshot_a)
+    check_file_unchanged(path_b, snapshot_b)
+    return equal
 
 
 # -------------------- 根据文件内容计算哈希值 --------------------
@@ -10,10 +57,13 @@ def calculate_hash(file_path):
     我们需要读取文件内容，再把内容交给它计算。
     """
     hash_object = hashlib.sha256()  # 创建一个空的 SHA-256 哈希计算器
+    snapshot = file_snapshot(file_path.stat())
 
     # rb 表示以二进制方式读取，可以处理文本、图片和视频等不同类型的文件。
     # with 会在代码块结束后自动关闭文件，避免文件一直被程序占用。
     with file_path.open("rb") as file:
+        if not opened_file_matches(file, snapshot):
+            raise OSError(f"File replaced before hashing: {file_path}")
         while True:
             # chunk 是我们自己定义的变量名，表示读取到的一“块”数据。
             # 每次最多读取 8192 字节，避免大文件一次性占用大量内存。
@@ -25,6 +75,11 @@ def calculate_hash(file_path):
 
             # 把本次读取的内容交给 SHA-256 计算器。
             hash_object.update(chunk)
+
+        if not opened_file_matches(file, snapshot):
+            raise OSError(f"File changed during hashing: {file_path}")
+
+    check_file_unchanged(file_path, snapshot)
 
     # 返回最终的十六进制哈希字符串。
     return hash_object.hexdigest()
@@ -42,16 +97,31 @@ def scan_directory(target):
     extension_count = {}  # 记录“扩展名 -> 文件数量”
     hash_groups = {}  # 记录“哈希值 -> 具有该哈希值的文件路径列表”
     size_groups = {}  # 记录“文件大小 -> 相同大小的文件记录列表”
+    snapshots = {}  # 保存首次读取的属性，后续检查是否变化。
+    seen_identities = set()  # 设备号和文件编号相同，代表同一物理文件。
+    skipped_alias_count = 0
 
     # rglob("*") 会递归遍历目标目录中的所有文件和子目录。
     for path in target.rglob("*"):
         try:
+            # 隔离区中的副本不再参与正常扫描。
+            if path.resolve().is_relative_to(QUARANTINE_ROOT.resolve()):
+                continue
+            # 默认不跟随文件符号链接；rglob 默认也不递归目录符号链接。
+            if path.is_symlink():
+                skipped_alias_count += 1
+                continue
             # 判断当前路径是否为文件，排除文件夹，因为当前版本只处理文件。
             if path.is_file():
                 # 先读取并整理当前文件的所有信息。
                 # 这一阶段只准备数据，暂时不修改数量、大小等统计结果。
                 file_info = path.stat()
                 file_size = file_info.st_size
+                identity = (file_info.st_dev, file_info.st_ino)
+                # 部分文件系统不提供有效 inode，此时不靠它判重。
+                if file_info.st_ino and identity in seen_identities:
+                    skipped_alias_count += 1
+                    continue
 
                 # 获取文件扩展名并转成小写，避免把 .TXT 和 .txt 当成两种类型。
                 extension = path.suffix.lower()
@@ -85,6 +155,9 @@ def scan_directory(target):
                 # 将当前文件记录加入对应的大小分组。
                 size_groups[file_size].append(file_record)
                 file_records.append(file_record)  # 将文件记录添加到列表中
+                snapshots[file_record['path']] = file_snapshot(file_info)
+                if file_info.st_ino:
+                    seen_identities.add(identity)
 
                 print(path)
         
@@ -105,7 +178,9 @@ def scan_directory(target):
             path = Path(file_record["path"])
 
             try:
+                check_file_unchanged(path, snapshots[file_record['path']])
                 file_hash = calculate_hash(path)
+                check_file_unchanged(path, snapshots[file_record['path']])
             except (PermissionError, OSError) as error:
                 # 元数据已经读取成功，所以保留记录；但不参与重复文件判断。
                 print(f"Hash skipped: {path}")
@@ -122,6 +197,23 @@ def scan_directory(target):
             # 把当前文件加入对应的哈希分组。
             hash_groups[file_hash].append(path)
 
+    # 第三阶段：哈希仅是候选条件，实际内容相同且属性稳定才保留分组。
+    # 如果一个组确认失败，保守地撤销整组摘要，防止数据库再把它误分组。
+    for file_hash, paths in list(hash_groups.items()):
+        try:
+            if len(paths) > 1:
+                for path in paths[1:]:
+                    if not files_equal(paths[0], path):
+                        raise OSError('Hash matched but file contents differ')
+            for path in paths:
+                check_file_unchanged(path, snapshots[str(path)])
+        except OSError as error:
+            print(f"Confirmation skipped: {error}")
+            del hash_groups[file_hash]
+            for record in file_records:
+                if record['hash'] == file_hash:
+                    record['hash'] = None
+
     # 只显示包含两个或更多文件的大小候选组。
     print("Same-size candidate groups:")
     for file_size, records in size_groups.items():
@@ -129,6 +221,7 @@ def scan_directory(target):
             print(f" - {file_size} bytes: {len(records)} files")
 
     print(f"Hashed files:{hashed_file_count}")
+    print(f"Skipped link aliases:{skipped_alias_count}")
 
     return file_count, total_size, extension_count, hash_groups, file_records
 

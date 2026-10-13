@@ -11,6 +11,20 @@ CREATE TABLE IF NOT EXISTS scan_tasks(
     total_size INTEGER NOT NULL CHECK(total_size>=0)
 );
 
+-- 文件操作独立于历史快照：保存隔离位置、状态和错误，便于恢复。
+CREATE TABLE IF NOT EXISTS quarantine_records (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    scan_id INTEGER NOT NULL REFERENCES scan_tasks(id),
+    original_path TEXT NOT NULL,
+    quarantine_path TEXT NOT NULL UNIQUE,
+    reference_path TEXT NOT NULL,
+    hash TEXT NOT NULL,
+    status TEXT NOT NULL CHECK (status IN ('pending', 'isolated', 'restored', 'failed')),
+    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    restored_at TEXT,
+    error TEXT
+);
+
 CREATE TABLE IF NOT EXISTS files(
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     scan_id INTEGER NOT NULL, -- 第几次扫描的编号 --
