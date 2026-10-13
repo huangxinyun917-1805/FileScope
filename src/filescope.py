@@ -325,29 +325,25 @@ def main():
         print(f"Error: path is not a directory: {target}")
         return
 
-    file_count, total_size, extension_count, hash_groups, file_records = scan_directory(target)
+    # CLI 与 Flask 共用扫描保存服务，各自负责展示。
+    # database.py 与当前文件都在 src 文件夹中；服务负责调用数据库。
+    if __package__:
+        from .services import scan_and_save
+    else:
+        from services import scan_and_save
+
+    result = scan_and_save(target)
 
     print_report(
-        file_count,
-        total_size,
-        extension_count,
-        hash_groups,
-        file_records
+        result.file_count,
+        result.total_size,
+        result.extension_count,
+        result.hash_groups,
+        result.file_records
     )
-    print(f"Records collected:{len(file_records)}")
-
-        # database.py 与当前文件都在 src 文件夹中。
-    from database import save_scan_results
-
-    scan_id, inserted_file_count = save_scan_results(
-        target.resolve(),
-        file_count,
-        total_size,
-        file_records,
-    )
-
-    print(f"Saved scan ID:{scan_id}")
-    print(f"Saved file records:{inserted_file_count}")
+    print(f"Records collected:{len(result.file_records)}")
+    print(f"Saved scan ID:{result.scan_id}")
+    print(f"Saved file records:{result.inserted_file_count}")
 
 
 # 只有直接运行 filescope.py 时才调用 main()，从这里启动程序。

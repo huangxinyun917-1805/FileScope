@@ -15,6 +15,19 @@
 </head>
 <body>
     <h1>FileScope · 扫描历史</h1>
+    <h2>扫描测试目录</h2>
+    <p>输入本机目录；相对路径以 FileScope 项目目录为起点。扫描只读取文件并保存记录。</p>
+    <!-- POST 将输入框的 target_path 交给 Flask，而不是放进网址。 -->
+    <form action="{{ url_for('start_scan') }}" method="post">
+        <label for="target_path">目录路径</label>
+        <input id="target_path" name="target_path" value="{{ target_path if target_path is defined else 'test_data' }}" required style="width: min(65%, 650px); padding: 10px;">
+        <button type="submit" style="padding: 10px;">扫描并保存</button>
+    </form>
+    <p>先使用 test_data 或测试副本目录。当前同步扫描，点击后等待跳转，不要重复提交。</p>
+    {% if error %}
+    <p role="alert" style="color: #a32121;">{{ error }}</p>
+    {% endif %}
+    <h2>已保存的扫描</h2>
     <p>已保存的扫描记录，时间为数据库记录的 UTC 时间。</p>
     <!-- Jinja 模板：有记录时显示表格。 -->
     {% if scans %}
@@ -36,7 +49,7 @@
     </table>
     </div>
     {% else %}
-    <p>还没有扫描记录，请先使用现有命令行扫描测试目录。</p>
+    <p>还没有扫描记录，可以使用上面的表单扫描测试目录。</p>
     {% endif %}
 </body>
 </html>

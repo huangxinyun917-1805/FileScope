@@ -1,6 +1,8 @@
-from flask import Flask, render_template, abort
+from flask import Flask, render_template, abort, request, redirect, url_for
+import sqlite3
 from src.database import get_scan_history, get_scan_task, get_scan_files
 from src.reports import build_duplicate_report
+from src.services import scan_and_save
 
 # Flask 应用会在同级 templates 文件夹寻找 HTML 模板。
 app = Flask(__name__)
@@ -13,6 +15,28 @@ def history():
     scan_history = get_scan_history()
     # 把列表传给模板中的 scans 变量，生成 HTML 返回浏览器。
     return render_template('history.html', scans=scan_history)
+
+
+@app.route('/scan', methods=['POST'])
+def start_scan():
+    # POST 接收表单提交；路由只负责输入、错误反馈和跳转。
+    target_path = request.form.get('target_path', '').strip()
+    try:
+        result = scan_and_save(target_path)
+    except ValueError as error:
+        return render_template(
+            'history.html', scans=get_scan_history(),
+            error=str(error), target_path=target_path,
+        ), 400
+    except (OSError, sqlite3.Error):
+        app.logger.exception('扫描或保存失败')
+        return render_template(
+            'history.html', scans=get_scan_history(),
+            error='扫描或保存失败，请查看终端错误信息。', target_path=target_path,
+        ), 500
+
+    # 保存成功后跳转到已有详情页，刷新详情不会再次提交扫描。
+    return redirect(url_for('scan_detail', scan_id=result.scan_id), code=303)
 
 @app.route('/api/status') # 浏览器访问http://127.0.0.1:5000/api/status
 def status(): # 就调用这个函数，返回python字典；lask自动把它转换成 JSON，返回给浏览器
