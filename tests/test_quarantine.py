@@ -113,18 +113,21 @@ def test_quarantine_directory_is_excluded(sample):
                for r in records)
 
 
-def test_web_operation_requires_token_and_runs_round_trip(sample):
+@pytest.mark.parametrize('group_number, fragment', [(None, ''), ('1', '#duplicate-group-1'), ('invalid', '')])
+def test_web_operation_requires_token_and_runs_round_trip(sample, group_number, fragment):
     scan_id, reference, candidate = sample
     app.config['TESTING'] = True
     client = app.test_client()
     submitted = {'candidate_path': str(candidate), 'reference_path': str(reference)}
+    if group_number is not None:
+        submitted['group_number'] = group_number
     assert client.post(f'/scan/{scan_id}/isolate', data=submitted).status_code == 400
     assert candidate.exists()
     client.get(f'/scan/{scan_id}')
     with client.session_transaction() as session:
         submitted['operation_token'] = session['operation_token']
     response = client.post(f'/scan/{scan_id}/isolate', data=submitted)
-    assert response.status_code == 303 and response.headers['Location'] == '/quarantine'
+    assert response.status_code == 303 and response.headers['Location'] == f'/scan/{scan_id}{fragment}'
     assert not candidate.exists()
     row = quarantine.get_quarantine_records()[0]
     restore = client.post(f"/quarantine/{row['id']}/restore", data=submitted)

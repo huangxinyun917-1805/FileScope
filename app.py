@@ -89,16 +89,20 @@ def scan_detail(scan_id):
 @app.route('/scan/<int:scan_id>/isolate', methods=['POST'])
 def isolate(scan_id):
     check_operation_token()
+    # 操作后返回本次详情的原重复组，不强制进入隔离区。
+    group_number = request.form.get('group_number', type=int)
+    anchor = f'duplicate-group-{group_number}' if group_number and group_number > 0 else None
+    detail_url = url_for('scan_detail', scan_id=scan_id, _anchor=anchor)
     try:
         operation_id = isolate_file(
             scan_id, request.form.get('candidate_path', ''),
             request.form.get('reference_path', ''),
         )
         flash(f'副本已隔离，操作编号 {operation_id}。可在隔离区恢复。')
-        return redirect(url_for('quarantine_page'), code=303)
+        return redirect(detail_url, code=303)
     except (ValueError, OSError, sqlite3.Error) as error:
         flash(f'未完成隔离：{error}')
-        return redirect(url_for('scan_detail', scan_id=scan_id), code=303)
+        return redirect(detail_url, code=303)
 
 
 @app.route('/quarantine')

@@ -44,7 +44,8 @@
     <p>按本次扫描保存的哈希和大小分组，假设每组保留一份。未复查当前文件、硬链接或实际磁盘占用，结果仅用于查看。</p>
     <p>每组第一项作为本次操作的保留文件，其余可逐个隔离。点击后会再次检查文件，隔离不会立即释放磁盘空间。</p>
     {% for group in duplicate_groups %}
-    <section>
+    {% set group_number = loop.index %}
+    <section id="duplicate-group-{{ group_number }}">
         <h3>第 {{ loop.index }} 组 · {{ group.members|length }} 个文件</h3>
         <p>每份 {{ group.size }} 字节，理论可释放 {{ group.reclaimable_space }} 字节。</p>
         <ul>
@@ -58,6 +59,7 @@
                 {% else %}
                 <form action="{{ url_for('isolate', scan_id=scan_id) }}" method="post">
                     <input type="hidden" name="operation_token" value="{{ operation_token }}">
+                    <input type="hidden" name="group_number" value="{{ group_number }}">
                     <input type="hidden" name="reference_path" value="{{ group.members[0].path }}">
                     <input type="hidden" name="candidate_path" value="{{ member.path }}">
                     <button type="submit">将此副本移到隔离区</button>
