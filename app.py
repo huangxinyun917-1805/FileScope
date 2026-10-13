@@ -1,5 +1,6 @@
-from flask import Flask, render_template
-from src.database import get_scan_history
+from flask import Flask, render_template, abort
+from src.database import get_scan_history, get_scan_task, get_scan_files
+from src.reports import build_duplicate_report
 
 # Flask 应用会在同级 templates 文件夹寻找 HTML 模板。
 app = Flask(__name__)
@@ -19,6 +20,23 @@ def status(): # 就调用这个函数，返回python字典；lask自动把它转
         'project':'FileScope',
         'message':'接口连接成功',
     }
+
+@app.route('/scan/<int:scan_id>') # @ 这个网址
+def scan_detail(scan_id):
+    scan_task=get_scan_task(scan_id)
+    if scan_task is None:
+        abort(404) # 中止当前请求，并返回指定的 HTTP错误状态
+    file_records=get_scan_files(scan_id)
+    # 查询一次文件记录，再整理出网页需要的重复组和空间统计。
+    duplicate_groups, reclaimable_space = build_duplicate_report(file_records)
+    return render_template(
+        'scan_detail.html',
+        scan=scan_task,
+        files=file_records,
+        duplicate_groups=duplicate_groups,
+        reclaimable_space=reclaimable_space,
+    )
+
 
 if __name__ == '__main__':
     # 本机访问，Ctrl+C 停止。

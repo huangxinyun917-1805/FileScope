@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>扫描 {{ scan[0] }} · FileScope</title>
+    <style>
+        body { font-family: system-ui, sans-serif; margin: 40px auto; padding: 0 20px; max-width: 1100px; color: #243244; background: #f5f7fa; }
+        table { width: 100%; border-collapse: collapse; background: white; }
+        th, td { padding: 14px; border-bottom: 1px solid #dce2ea; text-align: left; }
+        th { background: #e7edf4; }
+        td, dd { overflow-wrap: anywhere; }
+        dt { font-weight: bold; margin-top: 12px; }
+        dd { margin: 4px 0; }
+        .table-wrap { overflow-x: auto; }
+    </style>
+</head>
+<body>
+    <a href="{{ url_for('history') }}">返回扫描历史</a>
+
+    <!-- scan 是路由传来的扫描概况，字段顺序与 SELECT 一致。 -->
+    {% set scan_id, target_path, scanned_at, file_count, total_size = scan %}
+    <h1>扫描 {{ scan_id }} · 详情</h1>
+    <dl>
+        <dt>扫描目录</dt><dd>{{ target_path }}</dd>
+        <dt>扫描时间（UTC）</dt><dd>{{ scanned_at }}</dd>
+        <dt>文件数量</dt><dd>{{ file_count }}</dd>
+        <dt>总大小</dt><dd>{{ total_size }} 字节</dd>
+    </dl>
+
+    <h2>重复文件分组</h2>
+    <p>共 {{ duplicate_groups|length }} 组，理论可释放空间 {{ reclaimable_space }} 字节。</p>
+    <p>按本次扫描保存的哈希和大小分组，假设每组保留一份。未复查当前文件、硬链接或实际磁盘占用，结果仅用于查看。</p>
+    {% for group in duplicate_groups %}
+    <section>
+        <h3>第 {{ loop.index }} 组 · {{ group.members|length }} 个文件</h3>
+        <p>每份 {{ group.size }} 字节，理论可释放 {{ group.reclaimable_space }} 字节。</p>
+        <ul>
+            {% for member in group.members %}
+            <li>{{ member.name }} — {{ member.path }}</li>
+            {% endfor %}
+        </ul>
+    </section>
+    {% else %}
+    <p>本次扫描没有记录到重复组。</p>
+    {% endfor %}
+
+    <h2>文件列表</h2>
+    <p>显示这次扫描保存的记录，按大小从大到小排列。</p>
+    {% if files %}
+    <div class="table-wrap">
+        <table>
+            <thead><tr><th>文件名</th><th>路径</th><th>大小（字节）</th><th>扩展名</th><th>哈希状态</th></tr></thead>
+            <tbody>
+                <!-- files 是 get_scan_files() 返回的记录列表。 -->
+                {% for name, path, size, extension, file_hash in files %}
+                <tr>
+                    <td>{{ name }}</td>
+                    <td>{{ path }}</td>
+                    <td>{{ size }}</td>
+                    <td>{{ extension or '无扩展名' }}</td>
+                    <td>{{ '已计算' if file_hash is not none else '未计算' }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <p>这次扫描没有文件记录。</p>
+    {% endif %}
+</body>
+</html>

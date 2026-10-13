@@ -25,7 +25,7 @@
             <!-- 字段顺序与 get_scan_history 中的 SELECT 一致。 -->
             {% for scan_id, target_path, scanned_at, file_count, total_size in scans %}
             <tr>
-                <td>{{ scan_id }}</td>
+                <td><a href="{{ url_for('scan_detail', scan_id=scan_id) }}">{{ scan_id }}</a></td>
                 <td>{{ target_path }}</td>
                 <td>{{ scanned_at }}</td>
                 <td>{{ file_count }}</td>
