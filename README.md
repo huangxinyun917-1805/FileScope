@@ -96,6 +96,8 @@ python -m pytest -q
 
 ## 项目框架
 
+受控性能验证见 [实验计划](docs/benchmark-plan.md) 和 [Windows 实测报告](docs/experiments/size-filter-20261013T112723855156Z.md)。报告包含原始数据链接与测量限制，不代表生产性能。
+
 展示项目与复盘个人参与情况见 [演示与学习记录](docs/demo-and-learning.md)。
 
 Linux 环境的启动步骤、验证结果与跨系统路径限制见 [WSL Ubuntu 运行与验证](docs/linux-validation.md)。

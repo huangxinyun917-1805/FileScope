@@ -1,0 +1,674 @@
+{
+  "environment": {
+    "python": "3.14.0 (tags/v3.14.0:ebf955d, Oct  7 2025, 10:15:03) [MSC v.1944 64 bit (AMD64)]",
+    "platform": "Windows-10-10.0.19045-SP0",
+    "script_sha256": "5ccb30bb811b876402b5bb517ae1b375d3c94966f039c9803e3eb9441752efd7",
+    "scanner_sha256": "23cb0c6b345392c8c51b5c1c385fef89d07de7e945e88b779e956803e3fce7fa",
+    "data_root": "D:\\ChatGPT\\项目\\FileScope\\benchmark_data\\size_filter_v1",
+    "repeats": 7,
+    "time_utc": "20261013T112723855156Z",
+    "cache": "warm; generation, verification and warm-up precede timing"
+  },
+  "expected_groups": {
+    "mostly_unique_sizes": [
+      [
+        "group_00_0.bin",
+        "group_00_1.bin",
+        "group_00_2.bin"
+      ],
+      [
+        "group_01_0.bin",
+        "group_01_1.bin",
+        "group_01_2.bin"
+      ]
+    ],
+    "same_size_different_content": [],
+    "many_duplicates": [
+      [
+        "group_00_0.bin",
+        "group_00_1.bin",
+        "group_00_2.bin",
+        "group_00_3.bin",
+        "group_00_4.bin",
+        "group_00_5.bin"
+      ],
+      [
+        "group_01_0.bin",
+        "group_01_1.bin",
+        "group_01_2.bin",
+        "group_01_3.bin",
+        "group_01_4.bin",
+        "group_01_5.bin"
+      ],
+      [
+        "group_02_0.bin",
+        "group_02_1.bin",
+        "group_02_2.bin",
+        "group_02_3.bin",
+        "group_02_4.bin",
+        "group_02_5.bin"
+      ],
+      [
+        "group_03_0.bin",
+        "group_03_1.bin",
+        "group_03_2.bin",
+        "group_03_3.bin",
+        "group_03_4.bin",
+        "group_03_5.bin"
+      ],
+      [
+        "group_04_0.bin",
+        "group_04_1.bin",
+        "group_04_2.bin",
+        "group_04_3.bin",
+        "group_04_4.bin",
+        "group_04_5.bin"
+      ],
+      [
+        "group_05_0.bin",
+        "group_05_1.bin",
+        "group_05_2.bin",
+        "group_05_3.bin",
+        "group_05_4.bin",
+        "group_05_5.bin"
+      ],
+      [
+        "group_06_0.bin",
+        "group_06_1.bin",
+        "group_06_2.bin",
+        "group_06_3.bin",
+        "group_06_4.bin",
+        "group_06_5.bin"
+      ],
+      [
+        "group_07_0.bin",
+        "group_07_1.bin",
+        "group_07_2.bin",
+        "group_07_3.bin",
+        "group_07_4.bin",
+        "group_07_5.bin"
+      ],
+      [
+        "group_08_0.bin",
+        "group_08_1.bin",
+        "group_08_2.bin",
+        "group_08_3.bin",
+        "group_08_4.bin",
+        "group_08_5.bin"
+      ],
+      [
+        "group_09_0.bin",
+        "group_09_1.bin",
+        "group_09_2.bin",
+        "group_09_3.bin",
+        "group_09_4.bin",
+        "group_09_5.bin"
+      ]
+    ]
+  },
+  "summaries": [
+    {
+      "scenario": "mostly_unique_sizes",
+      "duplicate_groups": 2,
+      "full_hash": {
+        "median_seconds": 0.043943100004980806,
+        "min_seconds": 0.04320469999947818,
+        "max_seconds": 0.04972309999720892,
+        "hashed_files": 60,
+        "hashed_bytes": 3960378
+      },
+      "size_filter": {
+        "median_seconds": 0.009895299997879192,
+        "min_seconds": 0.009543700005451683,
+        "max_seconds": 0.014508000000205357,
+        "hashed_files": 6,
+        "hashed_bytes": 420003
+      },
+      "speedup_ratio": 4.440805232221247
+    },
+    {
+      "scenario": "same_size_different_content",
+      "duplicate_groups": 0,
+      "full_hash": {
+        "median_seconds": 0.05108410000684671,
+        "min_seconds": 0.045963700002175756,
+        "max_seconds": 0.06944350000412669,
+        "hashed_files": 60,
+        "hashed_bytes": 3932160
+      },
+      "size_filter": {
+        "median_seconds": 0.05248740000388352,
+        "min_seconds": 0.041151999997964595,
+        "max_seconds": 0.06680839999899035,
+        "hashed_files": 60,
+        "hashed_bytes": 3932160
+      },
+      "speedup_ratio": 0.9732640596232052
+    },
+    {
+      "scenario": "many_duplicates",
+      "duplicate_groups": 10,
+      "full_hash": {
+        "median_seconds": 0.06559420000121463,
+        "min_seconds": 0.06487419999757549,
+        "max_seconds": 0.06644120000419207,
+        "hashed_files": 60,
+        "hashed_bytes": 3932430
+      },
+      "size_filter": {
+        "median_seconds": 0.0667436000003363,
+        "min_seconds": 0.0650076000019908,
+        "max_seconds": 0.06921809999766992,
+        "hashed_files": 60,
+        "hashed_bytes": 3932430
+      },
+      "speedup_ratio": 0.9827788731935965
+    }
+  ],
+  "runs": [
+    {
+      "scenario": "mostly_unique_sizes",
+      "strategy": "full_hash",
+      "repeat": 1,
+      "position": 1,
+      "duplicate_groups": 2,
+      "seconds": 0.043910399996093474,
+      "file_count": 60,
+      "total_bytes": 3960378,
+      "hashed_files": 60,
+      "hashed_bytes": 3960378
+    },
+    {
+      "scenario": "mostly_unique_sizes",
+      "strategy": "size_filter",
+      "repeat": 1,
+      "position": 2,
+      "duplicate_groups": 2,
+      "seconds": 0.009543700005451683,
+      "file_count": 60,
+      "total_bytes": 3960378,
+      "hashed_files": 6,
+      "hashed_bytes": 420003
+    },
+    {
+      "scenario": "mostly_unique_sizes",
+      "strategy": "size_filter",
+      "repeat": 2,
+      "position": 1,
+      "duplicate_groups": 2,
+      "seconds": 0.010376500002166722,
+      "file_count": 60,
+      "total_bytes": 3960378,
+      "hashed_files": 6,
+      "hashed_bytes": 420003
+    },
+    {
+      "scenario": "mostly_unique_sizes",
+      "strategy": "full_hash",
+      "repeat": 2,
+      "position": 2,
+      "duplicate_groups": 2,
+      "seconds": 0.04496609999478096,
+      "file_count": 60,
+      "total_bytes": 3960378,
+      "hashed_files": 60,
+      "hashed_bytes": 3960378
+    },
+    {
+      "scenario": "mostly_unique_sizes",
+      "strategy": "full_hash",
+      "repeat": 3,
+      "position": 1,
+      "duplicate_groups": 2,
+      "seconds": 0.04364410000562202,
+      "file_count": 60,
+      "total_bytes": 3960378,
+      "hashed_files": 60,
+      "hashed_bytes": 3960378
+    },
+    {
+      "scenario": "mostly_unique_sizes",
+      "strategy": "size_filter",
+      "repeat": 3,
+      "position": 2,
+      "duplicate_groups": 2,
+      "seconds": 0.009895299997879192,
+      "file_count": 60,
+      "total_bytes": 3960378,
+      "hashed_files": 6,
+      "hashed_bytes": 420003
+    },
+    {
+      "scenario": "mostly_unique_sizes",
+      "strategy": "size_filter",
+      "repeat": 4,
+      "position": 1,
+      "duplicate_groups": 2,
+      "seconds": 0.009875899995677173,
+      "file_count": 60,
+      "total_bytes": 3960378,
+      "hashed_files": 6,
+      "hashed_bytes": 420003
+    },
+    {
+      "scenario": "mostly_unique_sizes",
+      "strategy": "full_hash",
+      "repeat": 4,
+      "position": 2,
+      "duplicate_groups": 2,
+      "seconds": 0.04320469999947818,
+      "file_count": 60,
+      "total_bytes": 3960378,
+      "hashed_files": 60,
+      "hashed_bytes": 3960378
+    },
+    {
+      "scenario": "mostly_unique_sizes",
+      "strategy": "full_hash",
+      "repeat": 5,
+      "position": 1,
+      "duplicate_groups": 2,
+      "seconds": 0.0472280000030878,
+      "file_count": 60,
+      "total_bytes": 3960378,
+      "hashed_files": 60,
+      "hashed_bytes": 3960378
+    },
+    {
+      "scenario": "mostly_unique_sizes",
+      "strategy": "size_filter",
+      "repeat": 5,
+      "position": 2,
+      "duplicate_groups": 2,
+      "seconds": 0.010286900003848132,
+      "file_count": 60,
+      "total_bytes": 3960378,
+      "hashed_files": 6,
+      "hashed_bytes": 420003
+    },
+    {
+      "scenario": "mostly_unique_sizes",
+      "strategy": "size_filter",
+      "repeat": 6,
+      "position": 1,
+      "duplicate_groups": 2,
+      "seconds": 0.009839199999987613,
+      "file_count": 60,
+      "total_bytes": 3960378,
+      "hashed_files": 6,
+      "hashed_bytes": 420003
+    },
+    {
+      "scenario": "mostly_unique_sizes",
+      "strategy": "full_hash",
+      "repeat": 6,
+      "position": 2,
+      "duplicate_groups": 2,
+      "seconds": 0.043943100004980806,
+      "file_count": 60,
+      "total_bytes": 3960378,
+      "hashed_files": 60,
+      "hashed_bytes": 3960378
+    },
+    {
+      "scenario": "mostly_unique_sizes",
+      "strategy": "full_hash",
+      "repeat": 7,
+      "position": 1,
+      "duplicate_groups": 2,
+      "seconds": 0.04972309999720892,
+      "file_count": 60,
+      "total_bytes": 3960378,
+      "hashed_files": 60,
+      "hashed_bytes": 3960378
+    },
+    {
+      "scenario": "mostly_unique_sizes",
+      "strategy": "size_filter",
+      "repeat": 7,
+      "position": 2,
+      "duplicate_groups": 2,
+      "seconds": 0.014508000000205357,
+      "file_count": 60,
+      "total_bytes": 3960378,
+      "hashed_files": 6,
+      "hashed_bytes": 420003
+    },
+    {
+      "scenario": "same_size_different_content",
+      "strategy": "full_hash",
+      "repeat": 1,
+      "position": 1,
+      "duplicate_groups": 0,
+      "seconds": 0.05430579999665497,
+      "file_count": 60,
+      "total_bytes": 3932160,
+      "hashed_files": 60,
+      "hashed_bytes": 3932160
+    },
+    {
+      "scenario": "same_size_different_content",
+      "strategy": "size_filter",
+      "repeat": 1,
+      "position": 2,
+      "duplicate_groups": 0,
+      "seconds": 0.04502119999960996,
+      "file_count": 60,
+      "total_bytes": 3932160,
+      "hashed_files": 60,
+      "hashed_bytes": 3932160
+    },
+    {
+      "scenario": "same_size_different_content",
+      "strategy": "size_filter",
+      "repeat": 2,
+      "position": 1,
+      "duplicate_groups": 0,
+      "seconds": 0.041151999997964595,
+      "file_count": 60,
+      "total_bytes": 3932160,
+      "hashed_files": 60,
+      "hashed_bytes": 3932160
+    },
+    {
+      "scenario": "same_size_different_content",
+      "strategy": "full_hash",
+      "repeat": 2,
+      "position": 2,
+      "duplicate_groups": 0,
+      "seconds": 0.04791139999724692,
+      "file_count": 60,
+      "total_bytes": 3932160,
+      "hashed_files": 60,
+      "hashed_bytes": 3932160
+    },
+    {
+      "scenario": "same_size_different_content",
+      "strategy": "full_hash",
+      "repeat": 3,
+      "position": 1,
+      "duplicate_groups": 0,
+      "seconds": 0.048557800000708085,
+      "file_count": 60,
+      "total_bytes": 3932160,
+      "hashed_files": 60,
+      "hashed_bytes": 3932160
+    },
+    {
+      "scenario": "same_size_different_content",
+      "strategy": "size_filter",
+      "repeat": 3,
+      "position": 2,
+      "duplicate_groups": 0,
+      "seconds": 0.06605419999687001,
+      "file_count": 60,
+      "total_bytes": 3932160,
+      "hashed_files": 60,
+      "hashed_bytes": 3932160
+    },
+    {
+      "scenario": "same_size_different_content",
+      "strategy": "size_filter",
+      "repeat": 4,
+      "position": 1,
+      "duplicate_groups": 0,
+      "seconds": 0.06680839999899035,
+      "file_count": 60,
+      "total_bytes": 3932160,
+      "hashed_files": 60,
+      "hashed_bytes": 3932160
+    },
+    {
+      "scenario": "same_size_different_content",
+      "strategy": "full_hash",
+      "repeat": 4,
+      "position": 2,
+      "duplicate_groups": 0,
+      "seconds": 0.06944350000412669,
+      "file_count": 60,
+      "total_bytes": 3932160,
+      "hashed_files": 60,
+      "hashed_bytes": 3932160
+    },
+    {
+      "scenario": "same_size_different_content",
+      "strategy": "full_hash",
+      "repeat": 5,
+      "position": 1,
+      "duplicate_groups": 0,
+      "seconds": 0.06301719999464694,
+      "file_count": 60,
+      "total_bytes": 3932160,
+      "hashed_files": 60,
+      "hashed_bytes": 3932160
+    },
+    {
+      "scenario": "same_size_different_content",
+      "strategy": "size_filter",
+      "repeat": 5,
+      "position": 2,
+      "duplicate_groups": 0,
+      "seconds": 0.05712159999529831,
+      "file_count": 60,
+      "total_bytes": 3932160,
+      "hashed_files": 60,
+      "hashed_bytes": 3932160
+    },
+    {
+      "scenario": "same_size_different_content",
+      "strategy": "size_filter",
+      "repeat": 6,
+      "position": 1,
+      "duplicate_groups": 0,
+      "seconds": 0.05248740000388352,
+      "file_count": 60,
+      "total_bytes": 3932160,
+      "hashed_files": 60,
+      "hashed_bytes": 3932160
+    },
+    {
+      "scenario": "same_size_different_content",
+      "strategy": "full_hash",
+      "repeat": 6,
+      "position": 2,
+      "duplicate_groups": 0,
+      "seconds": 0.05108410000684671,
+      "file_count": 60,
+      "total_bytes": 3932160,
+      "hashed_files": 60,
+      "hashed_bytes": 3932160
+    },
+    {
+      "scenario": "same_size_different_content",
+      "strategy": "full_hash",
+      "repeat": 7,
+      "position": 1,
+      "duplicate_groups": 0,
+      "seconds": 0.045963700002175756,
+      "file_count": 60,
+      "total_bytes": 3932160,
+      "hashed_files": 60,
+      "hashed_bytes": 3932160
+    },
+    {
+      "scenario": "same_size_different_content",
+      "strategy": "size_filter",
+      "repeat": 7,
+      "position": 2,
+      "duplicate_groups": 0,
+      "seconds": 0.045541099992988165,
+      "file_count": 60,
+      "total_bytes": 3932160,
+      "hashed_files": 60,
+      "hashed_bytes": 3932160
+    },
+    {
+      "scenario": "many_duplicates",
+      "strategy": "full_hash",
+      "repeat": 1,
+      "position": 1,
+      "duplicate_groups": 10,
+      "seconds": 0.06532129999686731,
+      "file_count": 60,
+      "total_bytes": 3932430,
+      "hashed_files": 60,
+      "hashed_bytes": 3932430
+    },
+    {
+      "scenario": "many_duplicates",
+      "strategy": "size_filter",
+      "repeat": 1,
+      "position": 2,
+      "duplicate_groups": 10,
+      "seconds": 0.06770549999782816,
+      "file_count": 60,
+      "total_bytes": 3932430,
+      "hashed_files": 60,
+      "hashed_bytes": 3932430
+    },
+    {
+      "scenario": "many_duplicates",
+      "strategy": "size_filter",
+      "repeat": 2,
+      "position": 1,
+      "duplicate_groups": 10,
+      "seconds": 0.06607939999958035,
+      "file_count": 60,
+      "total_bytes": 3932430,
+      "hashed_files": 60,
+      "hashed_bytes": 3932430
+    },
+    {
+      "scenario": "many_duplicates",
+      "strategy": "full_hash",
+      "repeat": 2,
+      "position": 2,
+      "duplicate_groups": 10,
+      "seconds": 0.06487419999757549,
+      "file_count": 60,
+      "total_bytes": 3932430,
+      "hashed_files": 60,
+      "hashed_bytes": 3932430
+    },
+    {
+      "scenario": "many_duplicates",
+      "strategy": "full_hash",
+      "repeat": 3,
+      "position": 1,
+      "duplicate_groups": 10,
+      "seconds": 0.06644120000419207,
+      "file_count": 60,
+      "total_bytes": 3932430,
+      "hashed_files": 60,
+      "hashed_bytes": 3932430
+    },
+    {
+      "scenario": "many_duplicates",
+      "strategy": "size_filter",
+      "repeat": 3,
+      "position": 2,
+      "duplicate_groups": 10,
+      "seconds": 0.0671784999940428,
+      "file_count": 60,
+      "total_bytes": 3932430,
+      "hashed_files": 60,
+      "hashed_bytes": 3932430
+    },
+    {
+      "scenario": "many_duplicates",
+      "strategy": "size_filter",
+      "repeat": 4,
+      "position": 1,
+      "duplicate_groups": 10,
+      "seconds": 0.0667436000003363,
+      "file_count": 60,
+      "total_bytes": 3932430,
+      "hashed_files": 60,
+      "hashed_bytes": 3932430
+    },
+    {
+      "scenario": "many_duplicates",
+      "strategy": "full_hash",
+      "repeat": 4,
+      "position": 2,
+      "duplicate_groups": 10,
+      "seconds": 0.06572369999776129,
+      "file_count": 60,
+      "total_bytes": 3932430,
+      "hashed_files": 60,
+      "hashed_bytes": 3932430
+    },
+    {
+      "scenario": "many_duplicates",
+      "strategy": "full_hash",
+      "repeat": 5,
+      "position": 1,
+      "duplicate_groups": 10,
+      "seconds": 0.06559420000121463,
+      "file_count": 60,
+      "total_bytes": 3932430,
+      "hashed_files": 60,
+      "hashed_bytes": 3932430
+    },
+    {
+      "scenario": "many_duplicates",
+      "strategy": "size_filter",
+      "repeat": 5,
+      "position": 2,
+      "duplicate_groups": 10,
+      "seconds": 0.06614249999984168,
+      "file_count": 60,
+      "total_bytes": 3932430,
+      "hashed_files": 60,
+      "hashed_bytes": 3932430
+    },
+    {
+      "scenario": "many_duplicates",
+      "strategy": "size_filter",
+      "repeat": 6,
+      "position": 1,
+      "duplicate_groups": 10,
+      "seconds": 0.0650076000019908,
+      "file_count": 60,
+      "total_bytes": 3932430,
+      "hashed_files": 60,
+      "hashed_bytes": 3932430
+    },
+    {
+      "scenario": "many_duplicates",
+      "strategy": "full_hash",
+      "repeat": 6,
+      "position": 2,
+      "duplicate_groups": 10,
+      "seconds": 0.06492850000358885,
+      "file_count": 60,
+      "total_bytes": 3932430,
+      "hashed_files": 60,
+      "hashed_bytes": 3932430
+    },
+    {
+      "scenario": "many_duplicates",
+      "strategy": "full_hash",
+      "repeat": 7,
+      "position": 1,
+      "duplicate_groups": 10,
+      "seconds": 0.06596629999694414,
+      "file_count": 60,
+      "total_bytes": 3932430,
+      "hashed_files": 60,
+      "hashed_bytes": 3932430
+    },
+    {
+      "scenario": "many_duplicates",
+      "strategy": "size_filter",
+      "repeat": 7,
+      "position": 2,
+      "duplicate_groups": 10,
+      "seconds": 0.06921809999766992,
+      "file_count": 60,
+      "total_bytes": 3932430,
+      "hashed_files": 60,
+      "hashed_bytes": 3932430
+    }
+  ]
+}
