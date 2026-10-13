@@ -2,6 +2,51 @@
 
 FileScope 是一个本地文件扫描、重复文件检测与存储分析平台。
 
+技术栈：Python、SQLite、Flask、Jinja、HTML/CSS、pytest。当前是 AI 辅助完成的本机学习与演示项目，不是生产部署版本。
+
+## 新下载项目的快速开始
+
+先打开终端进入下载后的 FileScope 文件夹。以下命令适用于 Windows CMD（本次验证使用 Python 3.14）：
+
+```cmd
+python -m venv .venv
+.venv\Scripts\activate
+python -m pip install -r requirements.txt
+python app.py
+```
+
+浏览器打开 http://127.0.0.1:5000/history，输入 `test_data` 发起扫描。数据库由程序自动初始化，不需要下载作者本机的数据库。Linux 步骤见 [运行验证说明](docs/linux-validation.md)。
+
+## 演示与设计来源
+
+- [五分钟演示与个人参与记录](docs/demo-and-learning.md)
+- [经典项目借鉴说明](docs/references.md)
+- [截图保存与发布前检查](docs/share-checklist.md)
+
+第一版演示已验证扫描、详情报告、单文件隔离和恢复。隔离不释放空间；理论可释放空间不等于实际磁盘占用。
+
+### 页面截图
+
+以下为测试数据的真实运行截图。示例中有 7 个文件、2 个重复组，理论可释放空间为 62 字节；隔离后仍保留磁盘文件。
+
+扫描历史与扫描入口：
+
+![扫描历史与扫描入口](docs/images/扫描历史.png)
+
+详情、最大文件与重复报告：
+
+![扫描详情与最大文件](docs/images/最大文件.png)
+
+[查看完整文件列表截图](docs/images/文件列表.png)。大小相同的 `same_size_a.txt` 和 `same_size_b.txt` 内容不同，不被判定为重复；`unique.txt` 大小唯一，无需计算哈希。
+
+隔离副本（操作 3）：
+
+![隔离副本成功](docs/images/隔离重复文件.png)
+
+恢复同一副本：
+
+![恢复副本成功](docs/images/恢复隔离.png)
+
 ## 第一版目标
 
 - 扫描指定目录
