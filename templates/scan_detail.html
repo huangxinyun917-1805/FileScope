@@ -32,6 +32,13 @@
         <dt>总大小</dt><dd>{{ total_size }} 字节</dd>
     </dl>
 
+    <h2>最大的三个文件</h2>
+    <ul>
+        {% for name, path, size, extension in largest_files %}
+        <li>{{ name }} — {{ size }} 字节</li>
+        {% endfor %}
+    </ul>
+
     <h2>重复文件分组</h2>
     <p>共 {{ duplicate_groups|length }} 组，理论可释放空间 {{ reclaimable_space }} 字节。</p>
     <p>按本次扫描保存的哈希和大小分组，假设每组保留一份。未复查当前文件、硬链接或实际磁盘占用，结果仅用于查看。</p>

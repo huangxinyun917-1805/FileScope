@@ -1,7 +1,7 @@
 from flask import Flask, render_template, abort, request, redirect, url_for, session, flash
 import sqlite3
 import secrets
-from src.database import get_scan_history, get_scan_task, get_scan_files
+from src.database import get_scan_history, get_scan_task, get_scan_files, get_largest_files
 from src.reports import build_duplicate_report
 from src.services import scan_and_save
 from src.quarantine import isolate_file, restore_file, get_quarantine_records
@@ -71,10 +71,14 @@ def scan_detail(scan_id):
     file_records=get_scan_files(scan_id)
     # 查询一次文件记录，再整理出网页需要的重复组和空间统计。
     duplicate_groups, reclaimable_space = build_duplicate_report(file_records)
+    # 查询本次扫描中最大的三个文件，供详情页展示。
+    largest_files = get_largest_files(scan_id, 3)
+
     return render_template(
         'scan_detail.html',
         scan=scan_task,
         files=file_records,
+        largest_files=largest_files,
         duplicate_groups=duplicate_groups,
         reclaimable_space=reclaimable_space,
         isolated_paths={r['original_path'] for r in get_quarantine_records()
